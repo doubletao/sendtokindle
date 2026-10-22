@@ -1,0 +1,4 @@
+config.json
+task.md
+__pycache__/
+*.pyc

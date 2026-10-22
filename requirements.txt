@@ -1,0 +1,1 @@
+ebook-converter-lib>=1.2.1
