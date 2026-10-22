@@ -2,3 +2,8 @@ config.json
 task.md
 __pycache__/
 *.pyc
+build/
+dist/
+release/
+*.spec
+sendtokindle_check.log

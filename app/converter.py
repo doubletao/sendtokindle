@@ -8,8 +8,9 @@ from pathlib import Path
 
 from ebook_converter_lib import convert
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-POPPLER_DIR = PROJECT_ROOT / "poppler_bin"
+from .paths import app_dir
+
+POPPLER_DIR = app_dir() / "poppler_bin"
 
 SUPPORTED_EXTS = {
     ".azw",

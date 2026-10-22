@@ -4,7 +4,9 @@ import copy
 import json
 from pathlib import Path
 
-CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.json"
+from .paths import app_dir
+
+CONFIG_PATH = app_dir() / "config.json"
 
 DEFAULT_CONFIG: dict = {
     "smtp": {
