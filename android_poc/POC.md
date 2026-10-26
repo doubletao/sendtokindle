@@ -53,7 +53,7 @@ PDF 不在 PoC 范围内——已确定安卓版 PDF 直接发送、不转换（
 | 5 | lxml `no member named 'ma_version_tag'`（p4a 是 Python 3.14） | `lxml==6.1.3`（支持 3.14） |
 | 6 | pip ResolutionImpossible（reportlab/odfpy/lxml 传递依赖撞 `--only-binary --platform`） | vendor e-c-lib + 白名单 requirements（本节） |
 | 7 | `No module named 'html5_parser'`（txt heuristic 分支需要） | wheel 自带的 `html5_parser/` 一并 vendor |
-| 8 | `charset_normalizer-3.5.2-cp314-...android_24_arm64_v8a.whl is not a supported wheel on this platform`（3.x 只有平台 wheel；p4a 请求 `==2.1.0` recipe 失败回退 pip 时**剥掉版本 pin**，dry-run 解析到 3.5.2 的 android wheel，安装阶段又拒绝它） | requirements 直接给 2.1.0 的 `py3-none-any` wheel URL（绕过解析，none-any 全平台可装）；同时 `android.archs = arm64-v8a` 单架构（消除 v7a 的第二套 pip platform 分叉，构建时间减半） |
+| 8 | `charset_normalizer-3.5.2-cp314-...whl is not a supported wheel on this platform`（p4a `process_python_modules` 对每个模块跑 `packaging.Requirement()`：裸 URL 抛异常 → "Ignored by module resolver"、不进 pip --dry-run；dry-run 独立把 requests 解析到 3.5.2 的 android wheel（platform tag 与 arch 匹配判通过）追加进安装列表，与兜底保留的 URL 双 charset 共存，安装阶段拒绝 android wheel） | requirements 用 PEP 508 直连形式 `charset-normalizer@https://...2.1.0-py3-none-any.whl`：`Requirement()` 解析成功进 `_requirement_names`，dry-run 直接以 2.1.0 满足 requests（`>=2,<4`），none-any 全平台可装；同时 `android.archs = arm64-v8a` 单架构（消除 v7a 第二套 platform 分叉，构建时间减半） |
 | — | workflow 修改不触发（paths 过滤） | paths 补 `.github/workflows/android-poc.yml` |
 
 ## PoC 代码

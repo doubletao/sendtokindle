@@ -17,12 +17,15 @@ source.include_exts = py,txt,mobi,epub,css,xsl,tmpl,json,types,html,xhtml
 # lxml pinned to 6.1.3: it supports CPython 3.14 (p4a's Python), while the
 # recipe's default version fails with "no member named 'ma_version_tag'".
 # All other listed packages ship py3-none-any wheels (pip --platform safe).
-# charset-normalizer pinned via a direct py3-none-any wheel URL: 3.x ships only
-# platform wheels (p4a's pip dry-run picks the android one, the install step
-# then rejects it: "not a supported wheel on this platform"), and p4a strips
-# version pins when a requested recipe is unavailable and it falls back to pip.
-# 2.1.0 satisfies requests' >=2,<4 and a none-any wheel installs anywhere.
-requirements = python3,kivy,lxml==6.1.3,pillow,beautifulsoup4,css-parser,html2text,markdown,pypdf,python-dateutil,https://files.pythonhosted.org/packages/94/69/64b11e8c2fb21f08634468caef885112e682b0ebe2908e74d3616eb1c113/charset_normalizer-2.1.0-py3-none-any.whl
+# charset-normalizer given as a PEP 508 direct reference to a py3-none-any
+# wheel: p4a's module resolver runs packaging.Requirement() on each module and
+# a bare URL raises (warning "Ignored by module resolver"), dropping it from
+# the pip --dry-run; the dry-run then resolves requests' dependency to the 3.5.2
+# android wheel and appends it, and the install step rejects that wheel.
+# With "name@url" the requirement parses, the dry-run satisfies requests from
+# the 2.1.0 wheel directly, and none-any installs on every platform.
+# 3.x ships only platform wheels; 2.1.0 satisfies requests' >=2,<4.
+requirements = python3,kivy,lxml==6.1.3,pillow,beautifulsoup4,css-parser,html2text,markdown,pypdf,python-dateutil,charset-normalizer@https://files.pythonhosted.org/packages/94/69/64b11e8c2fb21f08634468caef885112e682b0ebe2908e74d3616eb1c113/charset_normalizer-2.1.0-py3-none-any.whl
 
 # TXT/MOBI conversion needs no network; permission kept only for potential
 # ebook-converter runtime probes during PoC.
