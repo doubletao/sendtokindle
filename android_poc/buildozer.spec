@@ -6,9 +6,9 @@ package.domain = org.stkpoc
 version = 0.1.0
 
 source.dir = .
-# py/txt/mobi/epub: PoC code, test assets and vendored library sources.
+# py/txt/mobi/azw3/epub: PoC code, test assets and vendored library sources.
 # css/xsl/tmpl/json/types/html/xhtml: data files of the vendored ebook_converter package.
-source.include_exts = py,txt,mobi,epub,css,xsl,tmpl,json,types,html,xhtml
+source.include_exts = py,txt,mobi,azw3,epub,css,xsl,tmpl,json,types,html,xhtml
 
 # ebook-converter-lib is vendored into source (see POC.md): its pip metadata
 # pulls reportlab/svglib/odfpy which have no android-compatible wheels, while

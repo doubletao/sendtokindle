@@ -8,3 +8,9 @@ release/
 *.spec
 !android_poc/buildozer.spec
 sendtokindle_check.log
+
+# Android PoC: buildozer build dirs and downloaded CI artifacts
+android_poc/.buildozer/
+android_poc/bin/
+android_poc/downloaded_apk/
+*.apk
