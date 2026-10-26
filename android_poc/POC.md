@@ -27,6 +27,34 @@ PDF 不在 PoC 范围内——已确定安卓版 PDF 直接发送、不转换（
 - `sample.txt` — 纯文本输入
 - `sample.mobi` / `sample.azw3` — 由桌面 `ebook_converter_lib` 从 txt 转出，作为回转测试输入
 
+## 架构决策：ebook-converter-lib 以 vendor 方式打包（CI 第 8 轮定案）
+
+**问题链**（GitHub Actions 逐轮暴露）：
+
+1. p4a 对无 recipe 的纯 Python 包用 `pip install --only-binary=:all: --platform=android_24_*` 安装
+2. ebook-converter-lib 的 metadata 会把 lxml/pillow（有 recipe 但 `--ignore-installed`）、reportlab（manylinux-only wheel）、odfpy（sdist-only）拉进解析 → ResolutionImpossible
+
+**验证结论**（干净 venv 模拟安卓依赖子集）：txt/mobi/azw3→epub 转换**不需要** reportlab/odfpy/svglib（lazy import，只在 SVG/ODF/PDF 输出路径用），四步全 PASS。
+
+**方案**：
+
+- `ebook_converter/`（341 py + 12 数据资源）、`ebook_converter_lib/`、vendored `html5_parser/`、入口 `converter.py` 从 wheel 解包 vendor 进 `android_poc/` 源码，由 buildozer `source.include_exts` 打包——**彻底退出 pip 解析**
+- requirements 只留 `lxml==6.1.3`、`pillow`（p4a recipe 交叉编译）+ 纯 py 白名单（全部 py3-none-any wheel，`--platform` 安全）
+- 代价：正式版升级 e-c-lib 需重新 vendor；SVG/ODF 输入格式不支持（PoC 不需要）
+
+### CI 已解决的问题（复现时按序查）
+
+| # | 症状 | 修复 |
+|---|---|---|
+| 1 | `.gitignore` 的 `*.spec` 拦了 buildozer.spec | 加 `!android_poc/buildozer.spec` |
+| 2 | `One of "version" or "version.regex" must be set` | spec 加 `version = 0.1.0` |
+| 3 | SDK `Accept? (y/N):` 无人应答 → aidl 缺失 | `android.accept_sdk_license = True` |
+| 4 | libffi `autogen.sh`: undefined macro `LT_SYS_SYMBOL_USCORE` | workflow `apt install libltdl-dev` |
+| 5 | lxml `no member named 'ma_version_tag'`（p4a 是 Python 3.14） | `lxml==6.1.3`（支持 3.14） |
+| 6 | pip ResolutionImpossible（reportlab/odfpy/lxml 传递依赖撞 `--only-binary --platform`） | vendor e-c-lib + 白名单 requirements（本节） |
+| 7 | `No module named 'html5_parser'`（txt heuristic 分支需要） | wheel 自带的 `html5_parser/` 一并 vendor |
+| — | workflow 修改不触发（paths 过滤） | paths 补 `.github/workflows/android-poc.yml` |
+
 ## PoC 代码
 
 - `poc_convert.py` — 验证逻辑核心，与 UI 解耦，**桌面可先跑**：

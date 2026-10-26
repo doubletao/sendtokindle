@@ -6,13 +6,18 @@ package.domain = org.stkpoc
 version = 0.1.0
 
 source.dir = .
-source.include_exts = py,txt,mobi,epub
+# py/txt/mobi/epub: PoC code, test assets and vendored library sources.
+# css/xsl/tmpl/json/types/html/xhtml: data files of the vendored ebook_converter package.
+source.include_exts = py,txt,mobi,epub,css,xsl,tmpl,json,types,html,xhtml
 
-# lxml and pillow are C extensions: explicit p4a recipes are required.
+# ebook-converter-lib is vendored into source (see POC.md): its pip metadata
+# pulls reportlab/svglib/odfpy which have no android-compatible wheels, while
+# txt/mobi/azw3 -> epub conversion works without them (verified on desktop).
+# lxml and pillow are C extensions with explicit p4a recipes.
 # lxml pinned to 6.1.3: it supports CPython 3.14 (p4a's Python), while the
 # recipe's default version fails with "no member named 'ma_version_tag'".
-# Remaining ebook-converter-lib dependencies are pure Python from PyPI.
-requirements = python3,kivy,lxml==6.1.3,pillow,ebook-converter-lib
+# All other listed packages ship py3-none-any wheels (pip --platform safe).
+requirements = python3,kivy,lxml==6.1.3,pillow,beautifulsoup4,css-parser,html2text,markdown,pypdf,python-dateutil
 
 # TXT/MOBI conversion needs no network; permission kept only for potential
 # ebook-converter runtime probes during PoC.
