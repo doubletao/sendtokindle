@@ -3,6 +3,7 @@
 title = SendToKindle PoC
 package.name = stkpoc
 package.domain = org.stkpoc
+version = 0.1.0
 
 source.dir = .
 source.include_exts = py,txt,mobi,epub
