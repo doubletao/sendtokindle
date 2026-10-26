@@ -31,8 +31,18 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Cache buildozer
-        uses: actions/cache@v4
+      # libltdl-dev provides the LT_SYS_SYMBOL_USCORE macro needed by the
+      # libffi recipe's autogen.sh; ubuntu runners do not ship it by default.
+      - name: Install native build tools
+        working-directory: .
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libltdl-dev autoconf automake libtool pkg-config
+          df -h /
+
+      - name: Restore buildozer cache
+        uses: actions/cache/restore@v4
+        id: buildozer-cache
         with:
           path: ~/.buildozer
           key: buildozer-${{ runner.os }}-${{ hashFiles('android_poc/buildozer.spec') }}
@@ -46,6 +56,13 @@ jobs:
 
       - name: Build debug APK
         run: buildozer android debug -v
+
+      - name: Save buildozer cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.buildozer
+          key: ${{ steps.buildozer-cache.outputs.cache-primary-key }}
 
       - name: Upload APK
         if: success()
