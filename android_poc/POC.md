@@ -81,6 +81,14 @@ PDF 不在 PoC 范围内——已确定安卓版 PDF 直接发送、不转换（
 
 产物：`android_poc/bin/stkpoc-*.apk`，安装到真机点 RUN。
 
+## CI 构建结果
+
+- **2026-10-26 run [40277075187](https://github.com/doubletao/sendtokindle/actions/runs/40277075187)：全绿，12m04s**
+- 产物：artifact `stkpoc-apk` → `stkpoc-0.1.0-arm64-v8a-debug.apk`（30.1 MB，arm64-v8a debug）
+- 管线各阶段均验证通过：p4a recipes（lxml/pillow/kivy/libxml2/libxslt…交叉编译）→ 纯 Python 白名单 pip（--platform 解析）→ vendor 打包（`source.include_exts` 含资源文件，py_compile 全过）→ Gradle `BUILD SUCCESSFUL` → APK 拷入 `bin/`
+- 本地临时副本：`%TEMP%\apk_out\stkpoc-0.1.0-arm64-v8a-debug.apk`
+- **下一步**：装真机 → 点 RUN → 按上方验证清单判定（PoC 结论）
+
 ## 关注的失败模式（边跑边记录）
 
 - **lxml recipe 失效**：p4a 分支/NDK 版本不匹配 → spec 中调整 `p4a.branch`、`android.api`、`android.ndk`
