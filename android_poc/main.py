@@ -324,9 +324,9 @@ class SettingsScreen(Screen):
         buttons = BoxLayout(size_hint_y=None, height=ROW_H, spacing=dp(6))
         buttons.add_widget(Button(text="保存", on_release=self._save))
         buttons.add_widget(Button(text="返回", on_release=self._back))
-        buttons.add_widget(Button(text="自检", on_release=self._self_check))
         root.add_widget(buttons)
         self.add_widget(root)
+        self._snapshot: dict = self._collect()
 
     def on_pre_enter(self, *_args) -> None:
         smtp = self.app.config_data["smtp"]
@@ -337,6 +337,8 @@ class SettingsScreen(Screen):
         self.username.text = str(smtp.get("username", ""))
         self.password.text = str(smtp.get("password", ""))
         self.target.text = str(self.app.config_data.get("target_email", ""))
+        # 记下表单初始状态，返回时据此判断是否有未保存的修改
+        self._snapshot = self._collect()
 
     def _on_security(self, _spinner, value: str) -> None:  # noqa: ANN001
         # 端口为空或仍是另一种方式的默认端口时，自动切换
@@ -371,30 +373,29 @@ class SettingsScreen(Screen):
         self.manager.current = "main"
 
     def _back(self, *_args) -> None:
-        self.manager.current = "main"
-
-    def _self_check(self, *_args) -> None:
-        """跑一遍 PoC 的转换自检（txt/mobi/azw3 → epub），日志输出到主界面。"""
-        main: MainScreen = self.manager.get_screen("main")
-        if main.busy:
+        if self._collect() == self._snapshot:
+            self.manager.current = "main"
             return
-        self.manager.current = "main"
-        main.log_view.text = ""
-        main._set_busy(True)
-        main.status.text = "正在自检..."
 
-        def worker() -> None:
-            from poc_convert import run_poc
+        content = BoxLayout(orientation="vertical", spacing=dp(6))
+        popup = Popup(title="提示", content=content, size_hint=(0.9, None), height=dp(200),
+                      auto_dismiss=False)
 
-            ok = run_poc(log=main.log)
+        def on_save(*_a) -> None:
+            popup.dismiss()
+            self._save()  # 校验不通过时会弹出提示并留在设置页
 
-            def _done(_dt: object) -> None:
-                main._set_busy(False)
-                main.status.text = f"自检结果：{'PASS' if ok else 'FAIL'}"
+        def on_discard(*_a) -> None:
+            popup.dismiss()
+            self.manager.current = "main"  # 下次进入设置页会按已保存的配置重新填充
 
-            Clock.schedule_once(_done)
-
-        threading.Thread(target=worker, daemon=True).start()
+        content.add_widget(Label(text="配置还未保存，是否保存？"))
+        buttons = BoxLayout(size_hint_y=None, height=ROW_H, spacing=dp(6))
+        buttons.add_widget(Button(text="保存", on_release=on_save))
+        buttons.add_widget(Button(text="放弃", on_release=on_discard))
+        buttons.add_widget(Button(text="取消", on_release=lambda *_a: popup.dismiss()))
+        content.add_widget(buttons)
+        popup.open()
 
 
 class SendToKindleApp(App):
