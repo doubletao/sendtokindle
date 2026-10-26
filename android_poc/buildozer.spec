@@ -19,6 +19,9 @@ android.permissions = INTERNET
 # Build only the two common ABIs to keep the first PoC build fast.
 android.archs = arm64-v8a, armeabi-v7a
 
+# Required for unattended CI builds: silently accept Android SDK licenses.
+android.accept_sdk_license = True
+
 orientation = portrait
 fullscreen = 0
 
