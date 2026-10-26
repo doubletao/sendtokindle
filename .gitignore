@@ -6,4 +6,5 @@ build/
 dist/
 release/
 *.spec
+!android_poc/buildozer.spec
 sendtokindle_check.log
