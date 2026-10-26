@@ -9,8 +9,10 @@ source.dir = .
 source.include_exts = py,txt,mobi,epub
 
 # lxml and pillow are C extensions: explicit p4a recipes are required.
-# Remaining ebook-converter-lib dependencies are pure Python and get pulled from PyPI.
-requirements = python3,kivy,lxml,pillow,ebook-converter-lib
+# lxml pinned to 6.1.3: it supports CPython 3.14 (p4a's Python), while the
+# recipe's default version fails with "no member named 'ma_version_tag'".
+# Remaining ebook-converter-lib dependencies are pure Python from PyPI.
+requirements = python3,kivy,lxml==6.1.3,pillow,ebook-converter-lib
 
 # TXT/MOBI conversion needs no network; permission kept only for potential
 # ebook-converter runtime probes during PoC.
