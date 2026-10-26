@@ -17,7 +17,11 @@ source.include_exts = py,txt,mobi,epub,css,xsl,tmpl,json,types,html,xhtml
 # lxml pinned to 6.1.3: it supports CPython 3.14 (p4a's Python), while the
 # recipe's default version fails with "no member named 'ma_version_tag'".
 # All other listed packages ship py3-none-any wheels (pip --platform safe).
-requirements = python3,kivy,lxml==6.1.3,pillow,beautifulsoup4,css-parser,html2text,markdown,pypdf,python-dateutil
+# charset-normalizer pinned to 2.1.0: 3.x ships only platform-specific wheels,
+# so pip in p4a's target-platform mode finds "versions: none" and p4a's local
+# build produces a wheel pip then rejects ("not a supported wheel on this
+# platform"); 2.1.0 has a py3-none-any wheel and satisfies requests' >=2,<4.
+requirements = python3,kivy,lxml==6.1.3,pillow,beautifulsoup4,css-parser,html2text,markdown,pypdf,python-dateutil,charset-normalizer==2.1.0
 
 # TXT/MOBI conversion needs no network; permission kept only for potential
 # ebook-converter runtime probes during PoC.

@@ -53,6 +53,7 @@ PDF 不在 PoC 范围内——已确定安卓版 PDF 直接发送、不转换（
 | 5 | lxml `no member named 'ma_version_tag'`（p4a 是 Python 3.14） | `lxml==6.1.3`（支持 3.14） |
 | 6 | pip ResolutionImpossible（reportlab/odfpy/lxml 传递依赖撞 `--only-binary --platform`） | vendor e-c-lib + 白名单 requirements（本节） |
 | 7 | `No module named 'html5_parser'`（txt heuristic 分支需要） | wheel 自带的 `html5_parser/` 一并 vendor |
+| 8 | `charset_normalizer-3.5.2-cp314-...android_24_arm64_v8a.whl is not a supported wheel on this platform`（3.x 只发平台 wheel，p4a 本地构建的 wheel 又被 target pip 拒绝） | requirements 固定 `charset-normalizer==2.1.0`（有 py3-none-any wheel，满足 requests 的 `>=2,<4`） |
 | — | workflow 修改不触发（paths 过滤） | paths 补 `.github/workflows/android-poc.yml` |
 
 ## PoC 代码
