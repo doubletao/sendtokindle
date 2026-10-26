@@ -4,7 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [android-poc]
-    paths: ["android_poc/**"]
+    paths:
+      - "android_poc/**"
+      - ".github/workflows/android-poc.yml"
 
 concurrency:
   group: android-poc-${{ github.ref }}
