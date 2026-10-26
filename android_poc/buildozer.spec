@@ -1,14 +1,17 @@
 [app]
 
-title = SendToKindle PoC
-package.name = stkpoc
-package.domain = org.stkpoc
-version = 0.1.0
+title = SendToKindle
+# Package id: org.sendtokindle.app (the old PoC was org.stkpoc.stkpoc).
+package.name = app
+package.domain = org.sendtokindle
+version = 0.2.0
 
 source.dir = .
-# py/txt/mobi/azw3/epub: PoC code, test assets and vendored library sources.
+# py/txt/mobi/azw3/epub: app code, self-check assets and vendored library sources.
 # css/xsl/tmpl/json/types/html/xhtml: data files of the vendored ebook_converter package.
 source.include_exts = py,txt,mobi,azw3,epub,css,xsl,tmpl,json,types,html,xhtml
+# Desktop unit tests and locally downloaded CI artifacts stay out of the APK.
+source.exclude_dirs = tests,downloaded_apk,bin
 
 # ebook-converter-lib is vendored into source (see POC.md): its pip metadata
 # pulls reportlab/svglib/odfpy which have no android-compatible wheels, while
@@ -25,13 +28,16 @@ source.include_exts = py,txt,mobi,azw3,epub,css,xsl,tmpl,json,types,html,xhtml
 # With "name@url" the requirement parses, the dry-run satisfies requests from
 # the 2.1.0 wheel directly, and none-any installs on every platform.
 # 3.x ships only platform wheels; 2.1.0 satisfies requests' >=2,<4.
-requirements = python3,kivy,lxml==6.1.3,pillow,beautifulsoup4,css-parser,html2text,markdown,pypdf,python-dateutil,charset-normalizer@https://files.pythonhosted.org/packages/94/69/64b11e8c2fb21f08634468caef885112e682b0ebe2908e74d3616eb1c113/charset_normalizer-2.1.0-py3-none-any.whl
+# pyjnius / android (p4a recipes): SAF file picker and keep-screen-on flag.
+# certifi (py3-none-any): CA bundle for SMTP TLS, OpenSSL on Android has no
+# readable system CA path.
+requirements = python3,kivy,pyjnius,android,certifi,lxml==6.1.3,pillow,beautifulsoup4,css-parser,html2text,markdown,pypdf,python-dateutil,charset-normalizer@https://files.pythonhosted.org/packages/94/69/64b11e8c2fb21f08634468caef885112e682b0ebe2908e74d3616eb1c113/charset_normalizer-2.1.0-py3-none-any.whl
 
-# TXT/MOBI conversion needs no network; permission kept only for potential
-# ebook-converter runtime probes during PoC.
+# INTERNET for SMTP. Files are picked via SAF (ACTION_OPEN_DOCUMENT), which
+# needs no storage permission.
 android.permissions = INTERNET
 
-# Build only the two common ABIs to keep the first PoC build fast.
+# arm64-v8a only: covers current phones and halves CI build time.
 android.archs = arm64-v8a
 
 # Required for unattended CI builds: silently accept Android SDK licenses.

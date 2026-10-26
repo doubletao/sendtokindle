@@ -66,7 +66,7 @@ PDF 不在 PoC 范围内——已确定安卓版 PDF 直接发送、不转换（
 - `main.py` — Kivy 壳，真机上点 RUN 显示逐步 PASS/FAIL 与日志
 - `buildozer.spec` — Buildozer 配置，要点：
   - `requirements` 显式声明 `lxml`、`pillow`（C 扩展必须走 p4a recipe，不能靠 pip 现编）
-  - 只构建 `arm64-v8a, armeabi-v7a`，加快首轮构建
+  - 只构建 `arm64-v8a`（CI 第 8 轮起单架构）
 
 ## 构建方法（需要 Linux 环境）
 
@@ -95,11 +95,36 @@ PDF 不在 PoC 范围内——已确定安卓版 PDF 直接发送、不转换（
 - **Pillow recipe 构建失败**：常见于 NDK 工具链版本变化
 - **运行期缺字体**：calibre 管线转换时需要字体度量数据，缺失会表现为转换 FAIL 但有 traceback
 - **临时目录不可写**：`poc_convert` 用 `tempfile`（安卓 TMPDIR 指向 app 私有 cache，理论可写）
-- **体积**：首轮 APK 预计 50-80MB（Python 运行时 + lxml + Pillow + 数据文件），属预期
+- **体积**：实测 arm64-v8a debug APK 约 30MB（Python 运行时 + lxml + Pillow + 数据文件）
 
-## 后续（PoC 通过后才开工）
+## PoC 结论
 
-1. Kivy 正式 UI（文件多选列表、配置、进度）
-2. SAF `content://` URI → 拷贝到缓存目录再转换
-3. 前台服务保活（转换 + 发送期间显示通知）
-4. `sender.py` / `config.py` 原样复用
+2026-10-26 真机四步全 PASS（修复 `default_tweaks.py` 被 p4a 字节编译后删除、`azw3` 未打包两个问题之后），进入 App 开发。
+
+## App 版（0.2.0，包名 `org.sendtokindle.app`）
+
+功能对齐 Windows 版：配置发件邮箱和 Kindle 邮箱 → 添加本地文件 → 转换并发送，每本书一封邮件，书名作标题。
+
+- 代码：`main.py`（Kivy UI：主界面 + 设置页）、`stk/`（`config.py` / `sender.py` / `convert.py` 移植自桌面版 `app/`，`android_picker.py` 做 SAF 文件选择）
+- 格式：
+  - 原样发送：epub、pdf（Android 上没有 poppler，Kindle 邮件原生支持 PDF）
+  - 转 EPUB：txt、mobi、azw、azw3、prc、html、htm、md、markdown、docx、fb2、rtf（真机已验证 txt/mobi/azw3，其余未在真机跑过）
+  - 不支持 odt（odfpy 未打包）
+- 文件选择走 SAF，不申请存储权限；选中的文件复制到 App 缓存目录再处理，发送成功后删除
+- 加密方式只有 ssl（默认 465）和 starttls（默认 587），不提供明文 SMTP
+- 不限制附件大小，超限由邮箱服务商或 Amazon 拒收，错误原样显示
+- 发送期间保持亮屏，切到后台不退出；未做前台服务
+- 配置存在 App 私有目录 `config.json`，损坏或缺失时直接进设置页重新填写
+
+### 使用前准备
+
+1. 发件邮箱开启 SMTP 服务并获取授权码（QQ：`smtp.qq.com`、ssl、465；163：`smtp.163.com`、ssl、465）
+2. 在 Amazon「管理您的内容和设备 → 首选项 → 个人文档设置」里，把发件邮箱加进「已认可的发件人电子邮箱列表」
+3. 首次打开 App 进入设置页，填写后保存；设置页的「自检」会跑一遍上面的 PoC 转换验证
+
+### 桌面测试
+
+```
+cd android_poc
+python -m unittest discover tests
+```
