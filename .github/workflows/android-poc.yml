@@ -56,8 +56,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer
 
+      # -v is a global flag of this buildozer version and must precede the
+      # subcommand; trailing position yields "Unknown command -v" (exit 1)
+      # after the APK was already produced.
       - name: Build debug APK
-        run: buildozer android debug -v
+        run: buildozer -v android debug
 
       - name: Save buildozer cache
         if: always()

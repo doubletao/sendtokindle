@@ -54,6 +54,7 @@ PDF 不在 PoC 范围内——已确定安卓版 PDF 直接发送、不转换（
 | 6 | pip ResolutionImpossible（reportlab/odfpy/lxml 传递依赖撞 `--only-binary --platform`） | vendor e-c-lib + 白名单 requirements（本节） |
 | 7 | `No module named 'html5_parser'`（txt heuristic 分支需要） | wheel 自带的 `html5_parser/` 一并 vendor |
 | 8 | `charset_normalizer-3.5.2-cp314-...whl is not a supported wheel on this platform`（p4a `process_python_modules` 对每个模块跑 `packaging.Requirement()`：裸 URL 抛异常 → "Ignored by module resolver"、不进 pip --dry-run；dry-run 独立把 requests 解析到 3.5.2 的 android wheel（platform tag 与 arch 匹配判通过）追加进安装列表，与兜底保留的 URL 双 charset 共存，安装阶段拒绝 android wheel） | requirements 用 PEP 508 直连形式 `charset-normalizer@https://...2.1.0-py3-none-any.whl`：`Requirement()` 解析成功进 `_requirement_names`，dry-run 直接以 2.1.0 满足 requests（`>=2,<4`），none-any 全平台可装；同时 `android.archs = arm64-v8a` 单架构（消除 v7a 第二套 platform 分叉，构建时间减半） |
+| 9 | **APK 已产出**（`BUILD SUCCESSFUL`、`bin/stkpoc-0.1.0-arm64-v8a-debug.apk` available）但 CI exit 1：`# Unknown command -v`——该版 buildozer 的 `-v` 是全局 flag，必须放子命令前 | workflow 改 `buildozer -v android debug` |
 | — | workflow 修改不触发（paths 过滤） | paths 补 `.github/workflows/android-poc.yml` |
 
 ## PoC 代码
